@@ -1,0 +1,31 @@
+TrainAttack:
+    linf:
+        epsilon: 0.031
+        step_size: 0.0078
+        steps: 7
+        clip_min: 0.
+        clip_max: 1.
+        
+    l2:
+        epsilon: 0.5
+        step_size: 0.1
+        steps: 7
+        clip_min: 0.
+        clip_max: 1.
+        
+EvalAttack:
+    linf:
+        epsilon: 0.031
+        step_size: 0.0078
+        steps: 20
+        clip_min: 0.
+        clip_max: 1.
+        
+    l2:
+        epsilon: 0.5
+        step_size: 0.1
+        steps: 20
+        clip_min: 0.
+        clip_max: 1.
+                
+        

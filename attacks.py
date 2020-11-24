@@ -5,7 +5,8 @@ from torch.autograd import Variable
 import torch.optim as optim
 
 ## adapted from https://github.com/yaodongyu/TRADES/blob/master/trades.py
-def linf(model, x, y, params):
+def linf(model, x, y, allparams):
+    params = getattr(allparams, "linf")
     device = x.device
     
     random_noise = torch.FloatTensor(x.shape).uniform_(-params.epsilon, params.epsilon).to(device).detach()
@@ -29,7 +30,8 @@ def linf(model, x, y, params):
     return xadv
 
 
-def l2(model, x, y, params):
+def l2(model, x, y, allparams):
+    params = getattr(allparams, "l2")
     device = x.device
     
     random_noise = torch.FloatTensor(x.shape).uniform_(-1, 1).to(device).detach()

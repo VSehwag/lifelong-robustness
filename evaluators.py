@@ -3,6 +3,7 @@ import torch.nn as nn
 import time
 from utils import AverageMeter, ProgressMeter, accuracy
 import attacks
+from autoattack import AutoAttack
 
 def base(model, device, val_loader, criterion, attack_params=None, epoch=0, args=None):
     """
@@ -83,8 +84,16 @@ def adv(model, device, val_loader, criterion, attack_params=None, epoch=0, args=
             
             
             # adversarial images
-            images = getattr(attacks, args.eval_attack)(model, images, target, getattr(attack_params, args.eval_attack))
-
+            if args.autoattack:
+                if args.eval_attack == "linf":
+                    adversary = AutoAttack(model, norm='Linf', eps=args.EvalAttack.linf.epsilon, version='standard')
+                    images = adversary.run_standard_evaluation(images, target, bs=len(images))
+                elif args.eval_attack == "l2":
+                    adversary = AutoAttack(model, norm='L2', eps=args.EvalAttack.l2.epsilon, version='standard')
+                    images = adversary.run_standard_evaluation(images, target, bs=len(images))
+            else:
+                images = getattr(attacks, args.eval_attack)(model, images, target, attack_params)
+    
             # compute output
             output = model(images)
             loss = criterion(output, target)

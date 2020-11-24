@@ -30,7 +30,7 @@ from utils import *
 def main():
     parser = argparse.ArgumentParser(description="Lifelong robustness")
     
-    parser.add_argument("--configs", type=str, default="configs_mnist.yml")
+    parser.add_argument("--configs", type=str, default="./configs/configs_cifar.yml")
     parser.add_argument(
         "--results_dir", type=str, default="./eval_logs/",
     )
@@ -39,24 +39,16 @@ def main():
     parser.add_argument("--arch", type=str, default="cnnSmall")
     parser.add_argument("--num-classes", type=int, default=10)
     
-    parser.add_argument("--trainer", type=str, choices=("base", "adv"), default="base")
     parser.add_argument("--evaluator", type=str, choices=("base", "adv"), default="base")
-    
-    parser.add_argument("--train-attack", type=str, choices=("linf", "l2"), default="linf")
     parser.add_argument("--eval-attack", type=str, choices=("linf", "l2"), default="linf")
     
-    parser.add_argument("--dataset", type=str, default="mnist")
+    parser.add_argument("--dataset", type=str, default="cifar10")
     parser.add_argument("--data-dir", type=str, default="./datasets/")
-    parser.add_argument("--in-channel", type=int, default=1)
+    parser.add_argument("--in-channel", type=int, default=3)
     parser.add_argument("--normalize", action="store_true", default=False)
     parser.add_argument("--batch-size", type=int, default=256)
-    parser.add_argument("--size", type=int, default=32)
-    parser.add_argument("--epochs", type=int, default=20)
-    parser.add_argument("--lr", type=float, default=0.1)
-    parser.add_argument("--momentum", type=float, default=0.9)
-    parser.add_argument("--weight-decay", type=float, default=1e-4)
-    parser.add_argument("--warmup", action="store_true")
-
+    
+    parser.add_argument("--autoattack", action="store_true", default=False, help="Use AutoAttack instead of PGD")
     parser.add_argument("--print-freq", type=int, default=100)
     parser.add_argument("--save-freq", type=int, default=50)
     parser.add_argument("--ckpt", type=str, help="checkpoint path")
@@ -92,7 +84,6 @@ def main():
     train_loader, test_loader, _ = data.__dict__[args.dataset](
         args.data_dir,
         normalize=args.normalize,
-        size=args.size,
         batch_size=args.batch_size,
     )
     
