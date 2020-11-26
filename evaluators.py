@@ -92,7 +92,7 @@ def adv(model, device, val_loader, criterion, attack_params=None, epoch=0, args=
                     adversary = AutoAttack(model, norm='L2', eps=args.EvalAttack.l2.epsilon, version='standard')
                     images = adversary.run_standard_evaluation(images, target, bs=len(images))
             else:
-                images = getattr(attacks, args.eval_attack)(model, images, target, attack_params)
+                images, target = getattr(attacks, args.eval_attack)(model, images, target, attack_params)
     
             # compute output
             output = model(images)

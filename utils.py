@@ -11,6 +11,7 @@ import sklearn.metrics as skm
 from sklearn.covariance import ledoit_wolf
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import cross_val_score
+import matplotlib.pyplot as plt
 
 import torch
 import torch.nn.functional as F
@@ -143,3 +144,23 @@ def unnormalize(x, norm_layer):
     m, s = torch.tensor(norm_layer.mean).view(1, 3, 1, 1), torch.tensor(norm_layer.std).view(1, 3, 1, 1)
     return x * s + m
 
+
+def display_vectors(images):
+    if len(images) > 64:
+        images = images[:64]
+    if torch.is_tensor(images):
+        images = np.transpose(images.cpu().numpy(), (0, 2, 3, 1))
+
+    d = int(math.sqrt(len(images)))
+    plt.figure(figsize=(8, 8))
+    image = np.concatenate(
+        [
+            np.concatenate([images[d * i + j] for j in range(d)], axis=0)
+            for i in range(d)
+        ],
+        axis=1,
+    )
+    if image.shape[-1] == 1:
+        plt.imshow(image[:, :, 0], cmap="gray")
+    else:
+        plt.imshow(image)

@@ -36,11 +36,11 @@ def main():
     )
     parser.add_argument("--exp-name", type=str, default="temp")
 
-    parser.add_argument("--arch", type=str, default="cnnSmall")
+    parser.add_argument("--arch", type=str, default="cnnLarge")
     parser.add_argument("--num-classes", type=int, default=10)
     
     parser.add_argument("--evaluator", type=str, choices=("base", "adv"), default="base")
-    parser.add_argument("--eval-attack", type=str, choices=("linf", "l2"), default="linf")
+    parser.add_argument("--eval-attack", type=str, choices=("linf", "l2", "max", "avg", "tr"), default="linf")
     
     parser.add_argument("--dataset", type=str, default="cifar10")
     parser.add_argument("--data-dir", type=str, default="./datasets/")
@@ -79,6 +79,7 @@ def main():
     # load checkpoint
     ckpt_dict = torch.load(args.ckpt, map_location="cpu")["state_dict"]
     model.load_state_dict(ckpt_dict)
+    print(f"Checkpoint loaded from {args.ckpt}")
     
     # Dataloader
     train_loader, test_loader, _ = data.__dict__[args.dataset](

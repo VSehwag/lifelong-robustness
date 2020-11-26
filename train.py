@@ -36,15 +36,15 @@ def main():
     )
     parser.add_argument("--exp-name", type=str, default="temp")
 
-    parser.add_argument("--arch", type=str, default="cnnSmall")
+    parser.add_argument("--arch", type=str, default="cnnLarge")
     parser.add_argument("--width", type=int, default=1)
     parser.add_argument("--num-classes", type=int, default=10)
     
     parser.add_argument("--trainer", type=str, choices=("base", "adv"), default="base")
     parser.add_argument("--evaluator", type=str, choices=("base", "adv"), default="base")
     
-    parser.add_argument("--train-attack", type=str, choices=("linf", "l2"), default="linf")
-    parser.add_argument("--eval-attack", type=str, choices=("linf", "l2"), default="linf")
+    parser.add_argument("--train-attack", type=str, choices=("linf", "l2", "tr", "max", "avg"), default="linf")
+    parser.add_argument("--eval-attack", type=str, choices=("linf", "l2", "tr", "max", "avg"), default="linf")
     
     parser.add_argument("--dataset", type=str, default="cifar10")
     parser.add_argument("--data-dir", type=str, default="./datasets/")
@@ -61,6 +61,7 @@ def main():
                         help="Use AutoAttack instead of PGD in evaluation only")
     parser.add_argument("--print-freq", type=int, default=100)
     parser.add_argument("--save-freq", type=int, default=25)
+    parser.add_argument("--ckpt", type=str, help="checkpoint path")
     parser.add_argument("--seed", type=int, default=12345)
 
     args = update_args(parser.parse_args())
@@ -109,6 +110,11 @@ def main():
     model = torch.nn.DataParallel(models.__dict__[args.arch](in_channel=args.in_channel, num_classes=args.num_classes, width=args.width)).cuda()
     print(model)
     
+    if args.ckpt:
+        ckpt_dict = torch.load(args.ckpt, map_location="cpu")["state_dict"]
+        model.load_state_dict(ckpt_dict)
+        print(f"Checkpoint loaded from {args.ckpt}")
+        
     # Dataloader
     train_loader, test_loader, _ = data.__dict__[args.dataset](
         args.data_dir,

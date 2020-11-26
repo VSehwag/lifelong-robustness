@@ -7,8 +7,8 @@ TrainAttack:
         clip_max: 1.
         
     l2:
-        epsilon: 0.5
-        step_size: 0.1
+        epsilon: 1.0
+        step_size: 0.2
         steps: 7
         clip_min: 0.
         clip_max: 1.
@@ -22,7 +22,7 @@ EvalAttack:
         clip_max: 1.
         
     l2:
-        epsilon: 0.5
+        epsilon: 1.0
         step_size: 0.1
         steps: 20
         clip_min: 0.

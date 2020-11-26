@@ -122,7 +122,7 @@ def adv(
                 )
             )
         
-        images = getattr(attacks, args.train_attack)(model, images, target, attack_params)
+        images, target = getattr(attacks, args.train_attack)(model, images, target, attack_params)
         output = model(images)
         loss = criterion(output, target)
 

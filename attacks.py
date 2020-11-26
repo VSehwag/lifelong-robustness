@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 import torch.optim as optim
+#import foolbox
 
 ## adapted from https://github.com/yaodongyu/TRADES/blob/master/trades.py
 def linf(model, x, y, allparams):
@@ -27,7 +28,7 @@ def linf(model, x, y, allparams):
 #           torch.min(xadv).item(), torch.max(xadv).item(), 
 #           torch.min(x).item(), torch.max(x).item()
 #          )
-    return xadv
+    return xadv, y
 
 
 def l2(model, x, y, allparams):
@@ -60,4 +61,33 @@ def l2(model, x, y, allparams):
 #           torch.min(xadv).item(), torch.max(xadv).item(), 
 #           torch.min(x).item(), torch.max(x).item()
 #          )
-    return xadv
+    return xadv, y
+
+
+def tr(model, x, y, allparams):
+    # Using default +-3 pixel translation and +-30 degree rotation and assuming pixels in [0, 1] range.
+    print("fds")
+    attack = foolbox.attacks.SpatialAttack()
+    print(attack)
+    _, xadv, _ = attack(foolbox.PyTorchModel(model, bounds=(0, 1)), x, y)
+    print(xadv.shape)
+    return xadv, y
+
+
+def avg(model, x, y, allparams):
+    xadv_linf, _ = linf(model, x, y, allparams)
+    xadv_l2, _ = l2(model, x, y, allparams)
+    return torch.cat([xadv_linf, xadv_l2]), torch.cat([y, y])
+    
+
+def max(model, x, y, allparams):
+    xadv_linf, _ = linf(model, x, y, allparams)
+    xadv_l2, _ = l2(model, x, y, allparams)
+    
+    conf_linf = F.softmax(model(xadv_linf), dim=-1).gather(dim=-1, index=y.view(-1, 1)).view(-1, 1, 1, 1)
+    conf_l2 = F.softmax(model(xadv_l2), dim=-1).gather(dim=-1, index=y.view(-1, 1)).view(-1, 1, 1, 1)
+
+    xadv = torch.where(conf_linf < conf_l2, xadv_linf, xadv_l2)
+    
+    return xadv, y
+    
