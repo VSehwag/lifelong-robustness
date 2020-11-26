@@ -25,6 +25,8 @@ import trainers
 import evaluators
 import attacks
 from utils import *
+import warnings
+warnings.simplefilter("ignore")
 
 
 def main():

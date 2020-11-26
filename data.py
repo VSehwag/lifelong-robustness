@@ -125,7 +125,7 @@ def cifar10(data_dir, batch_size=128, mode="org", normalize=True, norm_layer=Non
             transform=transform_test,
         )
     
-    train_loader = DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=True)
-    test_loader = DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
+    train_loader = DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=0, pin_memory=True)
+    test_loader = DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=0, pin_memory=True)
     
     return train_loader, test_loader, norm_layer

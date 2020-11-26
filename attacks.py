@@ -3,7 +3,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 import torch.optim as optim
-#import foolbox
+import warnings
+warnings.simplefilter("ignore")
+import foolbox
+
 
 ## adapted from https://github.com/yaodongyu/TRADES/blob/master/trades.py
 def linf(model, x, y, allparams):
@@ -65,12 +68,13 @@ def l2(model, x, y, allparams):
 
 
 def tr(model, x, y, allparams):
-    # Using default +-3 pixel translation and +-30 degree rotation and assuming pixels in [0, 1] range.
-    print("fds")
-    attack = foolbox.attacks.SpatialAttack()
-    print(attack)
-    _, xadv, _ = attack(foolbox.PyTorchModel(model, bounds=(0, 1)), x, y)
-    print(xadv.shape)
+    params = getattr(allparams, "tr")
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore')
+        attack = foolbox.attacks.SpatialAttack(params.max_translation, params.max_rotation, 
+                                               params.num_translations, params.num_rotations, 
+                                               params.grid_search, params.random_steps)
+        _, xadv, _ = attack(foolbox.PyTorchModel(model, bounds=(params.clip_min, params.clip_max)), x, y)
     return xadv, y
 
 

@@ -12,6 +12,16 @@ TrainAttack:
         steps: 7
         clip_min: 0.
         clip_max: 1.
+    
+    tr:
+        max_translation: 5
+        max_rotation: 30
+        num_translations: 0
+        num_rotations: 0
+        grid_search: False
+        random_steps: 10
+        clip_min: 0.
+        clip_max: 1.
         
 EvalAttack:
     linf:
@@ -27,5 +37,13 @@ EvalAttack:
         steps: 20
         clip_min: 0.
         clip_max: 1.
-                
-        
+    
+    tr:
+        max_translation: 5
+        max_rotation: 30
+        num_translations: 5
+        num_rotations: 5
+        grid_search: True
+        random_steps: 0
+        clip_min: 0.
+        clip_max: 1.       
