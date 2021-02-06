@@ -1,0 +1,68 @@
+TrainAttack:
+    linf:
+        epsilon: 0.0155
+        step_size: 0.02
+        steps: 1
+        clip_min: 0.
+        clip_max: 1.
+        
+    l2:
+        epsilon: 3.0
+        step_size: 3.5
+        steps: 1
+        clip_min: 0.
+        clip_max: 1.
+    
+    tr:
+        max_translation: 50
+        max_rotation: 30
+        num_translations: 0
+        num_rotations: 0
+        grid_search: False
+        random_steps: 10
+        clip_min: 0.
+        clip_max: 1.
+        
+    snow:
+        nb_its: 10
+        eps_max: 1.0
+        step_size: 0.01
+        resol: 224
+        rand_init: True
+        scale_each: False
+        budget: 0.15
+
+        
+EvalAttack:
+    linf:
+        epsilon: 0.0155
+        step_size: 0.004
+        steps: 20
+        clip_min: 0.
+        clip_max: 1.
+        
+    l2:
+        epsilon: 3.0
+        step_size: 0.4
+        steps: 20
+        clip_min: 0.
+        clip_max: 1.
+    
+    tr:
+        max_translation: 50
+        max_rotation: 30
+        num_translations: 5
+        num_rotations: 5
+        grid_search: True
+        random_steps: 0
+        clip_min: 0.
+        clip_max: 1. 
+        
+    snow:
+        nb_its: 100
+        eps_max: 1.0
+        step_size: 0.0031
+        resol: 224
+        rand_init: True
+        scale_each: False
+        budget: 0.15

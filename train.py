@@ -34,7 +34,7 @@ def main():
     
     parser.add_argument("--configs", type=str, default="./configs/configs_cifar.yml")
     parser.add_argument(
-        "--results_dir", type=str, default="./trained_models/",
+        "--results_dir", type=str, default="/data/data_vvikash/fall20/lifelong-robustness/trained_models/",
     )
     parser.add_argument("--exp-name", type=str, default="temp")
 
@@ -49,7 +49,7 @@ def main():
     parser.add_argument("--eval-attack", type=str, choices=("linf", "l2", "tr", "max", "avg"), default="linf")
     
     parser.add_argument("--dataset", type=str, default="cifar10")
-    parser.add_argument("--data-dir", type=str, default="./datasets/")
+    parser.add_argument("--data-dir", type=str, default="/data/data_vvikash/fall20/lifelong-robustness/datasets/")
     parser.add_argument("--in-channel", type=int, default=3)
     parser.add_argument("--normalize", action="store_true", default=False)
     parser.add_argument("--batch-size", type=int, default=256)
@@ -64,35 +64,19 @@ def main():
     parser.add_argument("--print-freq", type=int, default=100)
     parser.add_argument("--save-freq", type=int, default=25)
     parser.add_argument("--ckpt", type=str, help="checkpoint path")
+    parser.add_argument("--trial", type=int, default=0)
     parser.add_argument("--seed", type=int, default=12345)
-
+    
     args = update_args(parser.parse_args())
-
+    assert args.normalize == False, "Presumption for most code is that the pixel range is [0,1]"
     if args.batch_size > 256 and not args.warmup:
         warnings.warn("Use warmup training for larger batch-sizes > 256")
     
+    # create resutls dir (for logs, checkpoints, etc.)
     if not os.path.isdir(args.results_dir):
         os.mkdir(args.results_dir)
-    
-    # create resutls dir (for logs, checkpoints, etc.)
     result_main_dir = os.path.join(args.results_dir, args.exp_name)
-
-    if os.path.exists(result_main_dir):
-        n = len(next(os.walk(result_main_dir))[-2])  # prev experiments with same name
-        result_sub_dir = result_sub_dir = os.path.join(
-            result_main_dir,
-            "{}--dataset-{}-arch-{}-lr-{}_epochs-{}".format(
-                n + 1, args.dataset, args.arch, args.lr, args.epochs
-            ),
-        )
-    else:
-        os.mkdir(result_main_dir)
-        result_sub_dir = result_sub_dir = os.path.join(
-            result_main_dir,
-            "1--dataset-{}-arch-{}-lr-{}_epochs-{}".format(
-                args.dataset, args.arch, args.lr, args.epochs
-            ),
-        )
+    result_sub_dir = os.path.join(result_main_dir, f"trial_{args.trial}")
     create_subdirs(result_sub_dir)
 
     # add logger
@@ -155,7 +139,7 @@ def main():
                 args,
             )
 
-    best_prec1 = 0
+    best_prec = 0
 
     for p in optimizer.param_groups:
         p["lr"] = args.lr
@@ -165,44 +149,31 @@ def main():
     )
     
     for epoch in range(0, args.epochs):
-        trainer(
-            model, "cuda:0", train_loader, criterion, optimizer, args.TrainAttack, lr_scheduler, epoch, args
-        )
-
-        prec1, _ = val(model, "cuda:0", test_loader, criterion, args.EvalAttack, epoch, args)
-
-        # remember best accuracy and save checkpoint
-        is_best = prec1 > best_prec1
-        best_prec1 = max(prec1, best_prec1)
-
+        results_train = trainer(model, "cuda:0", train_loader, criterion, optimizer, args.TrainAttack, lr_scheduler, epoch, args)
+        results_val = val(model, "cuda:0", test_loader, criterion, args.EvalAttack, epoch, args)
+        
+        if args.trainer == "baseline":
+            prec = results_val["top1"]
+        elif args.trainer == "adv":
+            prec = results_val["top1_adv"]
+        else:
+            raise ValueError()
+        is_best = prec > best_prec
+        best_prec = max(prec, best_prec)
+        
         d = {
             "epoch": epoch + 1,
             "arch": args.arch,
             "state_dict": model.state_dict(),
-            "best_prec1": best_prec1,
+            "best_prec1": best_prec,
             "optimizer": optimizer.state_dict(),
         }
 
         save_checkpoint(
-            d, is_best, os.path.join(result_sub_dir, "checkpoint"),
+            d, is_best, result_dir=os.path.join(result_sub_dir, "checkpoint"),
         )
-
-        if not (epoch + 1) % args.save_freq:
-            save_checkpoint(
-                d,
-                is_best,
-                os.path.join(result_sub_dir, "checkpoint"),
-                filename=f"checkpoint_{epoch+1}.pth.tar",
-            )
-
-        logger.info(
-            f"Epoch {epoch}, validation accuracy {prec1}, best_prec {best_prec1}"
-        )
-
-        # clone results to latest subdir (sync after every epoch)
-        clone_results_to_latest_subdir(
-            result_sub_dir, os.path.join(result_main_dir, "latest_exp")
-        )
+        
+        logger.info(f"Epoch {epoch}, " + ", ".join(["{}: {:.3f}".format(k+"_train", v) for (k,v) in results_train.items()]+["{}: {:.3f}".format(k+"_val", v) for (k,v) in results_val.items()]))
 
 
 if __name__ == "__main__":

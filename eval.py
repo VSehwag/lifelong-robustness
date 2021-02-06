@@ -32,7 +32,7 @@ def main():
     
     parser.add_argument("--configs", type=str, default="./configs/configs_cifar.yml")
     parser.add_argument(
-        "--results_dir", type=str, default="./eval_logs/",
+        "--results_dir", type=str, default="/data/data_vvikash/fall20/lifelong-robustness/eval_logs/",
     )
     parser.add_argument("--exp-name", type=str, default="temp")
 
@@ -43,7 +43,7 @@ def main():
     parser.add_argument("--eval-attack", type=str, choices=("linf", "l2", "max", "avg", "tr"), default="linf")
     
     parser.add_argument("--dataset", type=str, default="cifar10")
-    parser.add_argument("--data-dir", type=str, default="./datasets/")
+    parser.add_argument("--data-dir", type=str, default="/data/data_vvikash/fall20/lifelong-robustness/datasets/")
     parser.add_argument("--in-channel", type=int, default=3)
     parser.add_argument("--normalize", action="store_true", default=False)
     parser.add_argument("--batch-size", type=int, default=256)

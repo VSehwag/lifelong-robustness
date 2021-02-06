@@ -5,7 +5,6 @@ from torch.autograd import Variable
 import torch.optim as optim
 import warnings
 warnings.simplefilter("ignore")
-import foolbox
 
 
 ## adapted from https://github.com/yaodongyu/TRADES/blob/master/trades.py
@@ -65,33 +64,3 @@ def l2(model, x, y, allparams):
 #           torch.min(x).item(), torch.max(x).item()
 #          )
     return xadv, y
-
-
-def tr(model, x, y, allparams):
-    params = getattr(allparams, "tr")
-    with warnings.catch_warnings():
-        warnings.simplefilter('ignore')
-        attack = foolbox.attacks.SpatialAttack(params.max_translation, params.max_rotation, 
-                                               params.num_translations, params.num_rotations, 
-                                               params.grid_search, params.random_steps)
-        _, xadv, _ = attack(foolbox.PyTorchModel(model, bounds=(params.clip_min, params.clip_max)), x, y)
-    return xadv, y
-
-
-def avg(model, x, y, allparams):
-    xadv_linf, _ = linf(model, x, y, allparams)
-    xadv_l2, _ = l2(model, x, y, allparams)
-    return torch.cat([xadv_linf, xadv_l2]), torch.cat([y, y])
-    
-
-def max(model, x, y, allparams):
-    xadv_linf, _ = linf(model, x, y, allparams)
-    xadv_l2, _ = l2(model, x, y, allparams)
-    
-    conf_linf = F.softmax(model(xadv_linf), dim=-1).gather(dim=-1, index=y.view(-1, 1)).view(-1, 1, 1, 1)
-    conf_l2 = F.softmax(model(xadv_l2), dim=-1).gather(dim=-1, index=y.view(-1, 1)).view(-1, 1, 1, 1)
-
-    xadv = torch.where(conf_linf < conf_l2, xadv_linf, xadv_l2)
-    
-    return xadv, y
-    

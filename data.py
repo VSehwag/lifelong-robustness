@@ -5,7 +5,7 @@ from torchvision import datasets, transforms
 from torch.utils.data import DataLoader, SubsetRandomSampler
 
 
-def mnist(data_dir, batch_size=128, mode="org", normalize=True, norm_layer=None):
+def mnist(datadir, batch_size=128, mode="org", normalize=True, norm_layer=None):
     """
         mode: org | base
     """
@@ -29,13 +29,13 @@ def mnist(data_dir, batch_size=128, mode="org", normalize=True, norm_layer=None)
     transform_test = transforms.Compose(transform_test)
     
     trainset = datasets.MNIST(
-            root=os.path.join(data_dir, "mnist"),
+            root=os.path.join(datadir, "mnist"),
             train=True,
             download=True,
             transform=transform_train
         )
     testset = datasets.MNIST(
-            root=os.path.join(data_dir, "mnist"),
+            root=os.path.join(datadir, "mnist"),
             train=False,
             download=True,
             transform=transform_test,
@@ -47,7 +47,7 @@ def mnist(data_dir, batch_size=128, mode="org", normalize=True, norm_layer=None)
     return train_loader, test_loader, norm_layer
 
 
-def fmnist(data_dir, batch_size=128, mode="org", normalize=True, norm_layer=None):
+def fmnist(datadir, batch_size=128, mode="org", normalize=True, norm_layer=None):
     """
         mode: org | base
     """
@@ -71,13 +71,13 @@ def fmnist(data_dir, batch_size=128, mode="org", normalize=True, norm_layer=None
     transform_test = transforms.Compose(transform_test)
     
     trainset = datasets.FashionMNIST(
-            root=os.path.join(data_dir, "mnist"),
+            root=os.path.join(datadir, "mnist"),
             train=True,
             download=True,
             transform=transform_train
         )
     testset = datasets.FashionMNIST(
-            root=os.path.join(data_dir, "mnist"),
+            root=os.path.join(datadir, "mnist"),
             train=False,
             download=True,
             transform=transform_test,
@@ -89,7 +89,7 @@ def fmnist(data_dir, batch_size=128, mode="org", normalize=True, norm_layer=None
     return train_loader, test_loader, norm_layer
 
 
-def cifar10(data_dir, batch_size=128, mode="org", normalize=True, norm_layer=None, size=32):
+def cifar10(datadir, batch_size=128, mode="org", normalize=True, norm_layer=None, size=32):
     """
         mode: org | base
     """
@@ -113,13 +113,13 @@ def cifar10(data_dir, batch_size=128, mode="org", normalize=True, norm_layer=Non
     transform_test = transforms.Compose(transform_test)
     
     trainset = datasets.CIFAR10(
-            root=os.path.join(data_dir, "cifar10"),
+            root=os.path.join(datadir, "cifar10"),
             train=True,
             download=True,
             transform=transform_train
         )
     testset = datasets.CIFAR10(
-            root=os.path.join(data_dir, "cifar10"),
+            root=os.path.join(datadir, "cifar10"),
             train=False,
             download=True,
             transform=transform_test,
@@ -127,5 +127,44 @@ def cifar10(data_dir, batch_size=128, mode="org", normalize=True, norm_layer=Non
     
     train_loader = DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=0, pin_memory=True)
     test_loader = DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=0, pin_memory=True)
+    
+    return train_loader, test_loader, norm_layer
+
+
+def imagenet(datadir="/data/data_vvikash/datasets/imagenet_subsets/imagenette", batch_size=128, mode="org", size=224, normalize=False, norm_layer=None, workers=4, **kwargs):
+    # mode: base | org
+    
+    if norm_layer is None:
+        if normalize:
+            norm_layer = transforms.Normalize(mean=[.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        else:
+            norm_layer = transforms.Normalize(mean=[0., 0., 0.], std=[1., 1., 1.])
+    
+    transform_train = transforms.Compose([transforms.RandomResizedCrop(size),
+                       transforms.RandomHorizontalFlip(),
+                       transforms.ToTensor(),
+                       norm_layer
+                       ])
+    transform_test = transforms.Compose([transforms.Resize(int(1.14*size)),
+                      transforms.CenterCrop(size),
+                      transforms.ToTensor(), 
+                      norm_layer])
+    
+    if mode == "org":
+        None
+    elif mode == "base":
+        transform_train = transform_test
+    else:
+        raise ValueError(f"{mode} mode not supported")
+        
+    trainset = datasets.ImageFolder(
+        os.path.join(datadir, "train"), 
+        transform=transform_train)
+    testset = datasets.ImageFolder(
+        os.path.join(datadir, "val"), 
+        transform=transform_test)
+        
+    train_loader = DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=workers, pin_memory=True)
+    test_loader = DataLoader(testset, batch_size=batch_size, shuffle=True,  num_workers=workers, pin_memory=True)
     
     return train_loader, test_loader, norm_layer

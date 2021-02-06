@@ -73,6 +73,8 @@ def base(
         if i % args.print_freq == 0:
             progress.display(i)
             
+    result = {"top1": top1.avg, "top5":  top5.avg}
+    return result
             
             
 def adv(
@@ -145,5 +147,5 @@ def adv(
         if i % args.print_freq == 0:
             progress.display(i)
             
-
-            
+    result = {"top1_adv": top1.avg, "top5_adv": top5.avg}
+    return result
