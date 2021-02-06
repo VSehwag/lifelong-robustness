@@ -1,8 +1,9 @@
 import torch
 import torch.nn as nn
 import time
+import numpy as np
 from utils import AverageMeter, ProgressMeter, accuracy
-import attacks
+from attack_vectors import get_attack_vector
 
 def base(
     model,
@@ -72,8 +73,8 @@ def base(
 
         if i % args.print_freq == 0:
             progress.display(i)
-            
-    result = {"top1": top1.avg, "top5":  top5.avg}
+
+    result = {"top1": top1.avg, "top5":  top5.avg, "loss": losses.avg}
     return result
             
             
@@ -105,6 +106,8 @@ def adv(
 
     model.train()
     end = time.time()
+    
+    attack_vector = get_attack_vector(args.train_attack, attack_params)
 
     for i, data in enumerate(dataloader):
         images, target = data[0].to(device), data[1].to(device)
@@ -124,10 +127,10 @@ def adv(
                 )
             )
         
-        images, target = getattr(attacks, args.train_attack)(model, images, target, attack_params)
+        images, target = attack_vector(model, images, target, target)
         output = model(images)
         loss = criterion(output, target)
-
+        
         # measure accuracy and record loss
         acc1, acc5 = accuracy(output, target, topk=(1, 5))
         losses.update(loss.item(), images.size(0))
@@ -147,5 +150,5 @@ def adv(
         if i % args.print_freq == 0:
             progress.display(i)
             
-    result = {"top1_adv": top1.avg, "top5_adv": top5.avg}
+    result = {"top1_adv": top1.avg, "top5_adv": top5.avg, "loss": losses.avg}
     return result

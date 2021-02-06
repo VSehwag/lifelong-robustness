@@ -4,6 +4,7 @@ import time
 from utils import AverageMeter, ProgressMeter, accuracy
 import attacks
 from autoattack import AutoAttack
+from attack_vectors import get_attack_vector
 
 def base(model, device, val_loader, criterion, attack_params=None, epoch=0, args=None):
     """
@@ -43,8 +44,9 @@ def base(model, device, val_loader, criterion, attack_params=None, epoch=0, args
                 progress.display(i)
 
         progress.display(i)  # print final results
-
-    return round(top1.avg.item(), 4), round(top5.avg.item(), 4)
+    
+    result = {"top1": top1.avg, "top5": top5.avg, "loss": losses.avg}
+    return result
 
 
 
@@ -64,6 +66,8 @@ def adv(model, device, val_loader, criterion, attack_params=None, epoch=0, args=
         [batch_time, losses, adv_losses, top1, top5, adv_top1, adv_top5],
         prefix="Test: ",
     )
+    
+    attack_vector = get_attack_vector(args.eval_attack, attack_params)
     
     # switch to evaluate mode
     model.eval()
@@ -91,8 +95,10 @@ def adv(model, device, val_loader, criterion, attack_params=None, epoch=0, args=
                 elif args.eval_attack == "l2":
                     adversary = AutoAttack(model, norm='L2', eps=args.EvalAttack.l2.epsilon, version='standard')
                     images = adversary.run_standard_evaluation(images, target, bs=len(images))
+                else:
+                    raise ValueError(f"Autoattack doesn't support {args.eval_attack} attack")
             else:
-                images, target = getattr(attacks, args.eval_attack)(model, images, target, attack_params)
+                images, target = attack_vector(model, images, target, target)
     
             # compute output
             output = model(images)
@@ -112,5 +118,6 @@ def adv(model, device, val_loader, criterion, attack_params=None, epoch=0, args=
                 progress.display(i)
 
         progress.display(i)  # print final results
-
-    return round(adv_top1.avg.item(), 4), round(adv_top5.avg.item(), 4)
+        
+    result = {"top1": top1.avg, "top5": top5.avg, "loss": losses.avg, "top1_adv": adv_top1.avg, "top5_adv": adv_top5.avg, "loss_adv": adv_losses.avg}
+    return result

@@ -122,7 +122,7 @@ class GaborAttack:
         return gabor_kernel
 
     def _forward(self, pixel_model, pixel_img, target, avoid_target=True, scale_eps=False):
-        pixel_inp = pixel_img.detach()
+        pixel_inp = pixel_img.detach() * 255.0 # Assuming that input pixel are in [0., 1.]
         batch_size = pixel_img.size(0)
 
         if scale_eps:
@@ -165,4 +165,4 @@ class GaborAttack:
                 s = pixel_model(torch.clamp(pixel_inp + base_eps[:, None, None, None] * gabor_noise, 0., 255.))
                 gabor_vars.grad.data.zero_()
         pixel_result = torch.clamp(pixel_inp + base_eps[:, None, None, None] * gabor_rand_distributed(gabor_vars, gabor_kernel), 0., 255.)
-        return pixel_result
+        return pixel_result / 255.0

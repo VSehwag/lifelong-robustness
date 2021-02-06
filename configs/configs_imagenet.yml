@@ -1,15 +1,15 @@
 TrainAttack:
     linf:
         epsilon: 0.0155
-        step_size: 0.02
-        steps: 1
+        step_size: 0.01
+        steps: 4
         clip_min: 0.
         clip_max: 1.
         
     l2:
         epsilon: 3.0
-        step_size: 3.5
-        steps: 1
+        step_size: 1.5
+        steps: 4
         clip_min: 0.
         clip_max: 1.
     
@@ -31,7 +31,23 @@ TrainAttack:
         rand_init: True
         scale_each: False
         budget: 0.15
-
+    
+    gabor:
+        nb_its: 10
+        eps_max: 1600
+        step_size: 0.01
+        resol: 224
+        rand_init: True
+        scale_each: False
+        
+    jpeg:
+        nb_its: 10
+        eps_max: 200.0
+        step_size: 70 
+        resol: 224
+        rand_init: True
+        scale_each: False
+        opt: "l2"
         
 EvalAttack:
     linf:
@@ -66,3 +82,20 @@ EvalAttack:
         rand_init: True
         scale_each: False
         budget: 0.15
+        
+    gabor:
+        nb_its: 100
+        eps_max: 1600
+        step_size: 0.0031
+        resol: 224
+        rand_init: True
+        scale_each: False
+    
+    jpeg:
+        nb_its: 100
+        eps_max: 200.0
+        step_size: 20
+        resol: 224
+        rand_init: True
+        scale_each: False
+        opt: "l2"

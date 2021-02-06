@@ -29,8 +29,8 @@ def save_checkpoint(state, is_best, results_dir, filename="checkpoint.pth.tar"):
 
 
 def create_subdirs(sub_dir):
-    os.mkdir(sub_dir)
-    os.mkdir(os.path.join(sub_dir, "checkpoint"))
+    os.makedirs(sub_dir, exist_ok=True)
+    os.makedirs(os.path.join(sub_dir, "checkpoint"), exist_ok=True)
 
 
 def clone_results_to_latest_subdir(src, dst):
@@ -99,11 +99,11 @@ def accuracy(output, target, topk=(1,)):
 
         _, pred = output.topk(maxk, 1, True, True)
         pred = pred.t()
-        correct = pred.eq(target.view(1, -1).expand_as(pred))
+        correct = pred.eq(target.reshape(1, -1).expand_as(pred))
 
         res = []
         for k in topk:
-            correct_k = correct[:k].view(-1).float().sum(0, keepdim=True)
+            correct_k = correct[:k].reshape(-1).float().sum(0, keepdim=True)
             res.append(correct_k.mul_(100.0 / batch_size))
         return res
 

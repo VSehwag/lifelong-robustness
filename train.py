@@ -34,7 +34,7 @@ def main():
     
     parser.add_argument("--configs", type=str, default="./configs/configs_cifar.yml")
     parser.add_argument(
-        "--results_dir", type=str, default="/data/data_vvikash/fall20/lifelong-robustness/trained_models/",
+        "--results_dir", type=str, default="./trained_models/",
     )
     parser.add_argument("--exp-name", type=str, default="temp")
 
@@ -45,11 +45,11 @@ def main():
     parser.add_argument("--trainer", type=str, choices=("base", "adv"), default="base")
     parser.add_argument("--evaluator", type=str, choices=("base", "adv"), default="base")
     
-    parser.add_argument("--train-attack", type=str, choices=("linf", "l2", "tr", "max", "avg"), default="linf")
-    parser.add_argument("--eval-attack", type=str, choices=("linf", "l2", "tr", "max", "avg"), default="linf")
+    parser.add_argument("--train-attack", type=str, choices=("linf", "l2", "snow", "gabor", "jpeg"), default="linf")
+    parser.add_argument("--eval-attack", type=str, choices=("linf", "l2", "snow", "gabor", "jpeg"), default="linf")
     
     parser.add_argument("--dataset", type=str, default="cifar10")
-    parser.add_argument("--data-dir", type=str, default="/data/data_vvikash/fall20/lifelong-robustness/datasets/")
+    parser.add_argument("--datadir", type=str, default="./datasets/")
     parser.add_argument("--in-channel", type=int, default=3)
     parser.add_argument("--normalize", action="store_true", default=False)
     parser.add_argument("--batch-size", type=int, default=256)
@@ -62,7 +62,6 @@ def main():
     parser.add_argument("--autoattack", action="store_true", default=False, 
                         help="Use AutoAttack instead of PGD in evaluation only")
     parser.add_argument("--print-freq", type=int, default=100)
-    parser.add_argument("--save-freq", type=int, default=25)
     parser.add_argument("--ckpt", type=str, help="checkpoint path")
     parser.add_argument("--trial", type=int, default=0)
     parser.add_argument("--seed", type=int, default=12345)
@@ -103,7 +102,7 @@ def main():
         
     # Dataloader
     train_loader, test_loader, _ = data.__dict__[args.dataset](
-        args.data_dir,
+        args.datadir,
         normalize=args.normalize,
         batch_size=args.batch_size,
     )
@@ -121,10 +120,10 @@ def main():
     
     # warmup
     if args.warmup:
-        wamrup_epochs = 3
+        wamrup_epochs = 5
         print(f"Warmup training for {wamrup_epochs} epochs")
         warmup_lr_scheduler = torch.optim.lr_scheduler.CyclicLR(
-            optimizer, base_lr=0.01, max_lr=args.lr, step_size_up=wamrup_epochs*len(train_loader)
+            optimizer, base_lr=0.005, max_lr=args.lr, step_size_up=wamrup_epochs*len(train_loader)
         )
         for epoch in range(wamrup_epochs):
             trainer(
@@ -152,9 +151,9 @@ def main():
         results_train = trainer(model, "cuda:0", train_loader, criterion, optimizer, args.TrainAttack, lr_scheduler, epoch, args)
         results_val = val(model, "cuda:0", test_loader, criterion, args.EvalAttack, epoch, args)
         
-        if args.trainer == "baseline":
+        if args.evaluator == "base":
             prec = results_val["top1"]
-        elif args.trainer == "adv":
+        elif args.evaluator == "adv":
             prec = results_val["top1_adv"]
         else:
             raise ValueError()
@@ -170,7 +169,7 @@ def main():
         }
 
         save_checkpoint(
-            d, is_best, result_dir=os.path.join(result_sub_dir, "checkpoint"),
+            d, is_best, results_dir=os.path.join(result_sub_dir, "checkpoint"),
         )
         
         logger.info(f"Epoch {epoch}, " + ", ".join(["{}: {:.3f}".format(k+"_train", v) for (k,v) in results_train.items()]+["{}: {:.3f}".format(k+"_val", v) for (k,v) in results_val.items()]))
