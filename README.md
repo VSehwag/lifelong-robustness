@@ -4,6 +4,13 @@ A minimialistic imlementation of adversarial training on MNIST/FMNIST/CIFAR10 da
 
 Currently support only l2 and linf attacks. Future target is to add l1 and a spatial attack. 
 
+### Thing to know, before you start editing
+1. To simply the pipeline, we assume that each image have the [0., 1.] pixel ranges. If it needs normalization or scaling up to [0, 255], please do so in the the model/attacks itself.
+
+
+
+
+### How to use it
 1. Training a network
 `CUDA_VISIBLE_DEVICES=0,1 python train.py --trainer adv --train-attack linf --evaluator adv --eval-attack linf --exp-name cifar10_cnnLarge_adv_linf`
 
