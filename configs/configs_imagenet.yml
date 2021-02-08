@@ -24,26 +24,26 @@ TrainAttack:
         clip_max: 1.
         
     snow:
-        nb_its: 10
+        nb_its: 4
         eps_max: 1.0
-        step_size: 0.01
+        step_size: 0.016
         resol: 224
         rand_init: True
         scale_each: False
         budget: 0.15
     
     gabor:
-        nb_its: 10
-        eps_max: 1600
-        step_size: 0.01
+        nb_its: 4
+        eps_max: 160
+        step_size: 0.016
         resol: 224
         rand_init: True
         scale_each: False
         
     jpeg:
-        nb_its: 10
-        eps_max: 200.0
-        step_size: 70 
+        nb_its: 4
+        eps_max: 64.0
+        step_size: 32.0
         resol: 224
         rand_init: True
         scale_each: False
@@ -85,7 +85,7 @@ EvalAttack:
         
     gabor:
         nb_its: 100
-        eps_max: 1600
+        eps_max: 160
         step_size: 0.0031
         resol: 224
         rand_init: True
@@ -93,8 +93,8 @@ EvalAttack:
     
     jpeg:
         nb_its: 100
-        eps_max: 200.0
-        step_size: 20
+        eps_max: 64.0
+        step_size: 6.4
         resol: 224
         rand_init: True
         scale_each: False
