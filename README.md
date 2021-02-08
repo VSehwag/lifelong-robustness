@@ -17,9 +17,8 @@ Currently support l2, linf, snow, gabor, and jpeg (l2) attacks.
 `CUDA_VISIBLE_DEVICES=0 python eval.py --evaluator adv --eval-attack linf --ckpt checkpoint_path`
 You can pass `--autoattack` flag to evaluate with autoattack.
 
-
+More examples can be found in `run_exps.sh` and `eval_exps.sh`.
 
 ### Misc
 1. We use "ResNet, MobileNet" naming convention for ImageNet scale models while "resnet, mobilenet" for it cifar10 scale counterparts.
 2. Eval attack steps for most attacks are set to very high values in the configs. Make sure not to eval with them after every epoch, i.e., better to set `--evaluator base` for these attacks and conduct an evaluation post training. 
-3. 
