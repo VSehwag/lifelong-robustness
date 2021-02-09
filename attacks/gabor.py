@@ -166,6 +166,5 @@ class GaborAttack:
                 gabor_noise = gabor_rand_distributed(gabor_vars, gabor_kernel).expand(-1, 3, -1, -1)
                 s = pixel_model(torch.clamp(pixel_inp + base_eps[:, None, None, None] * gabor_noise, 0., 255.))
                 gabor_vars.grad.data.zero_()
-
-        pixel_result = torch.clamp(pixel_inp + base_eps[:, None, None, None], 0., 255.)
+        pixel_result = torch.clamp(pixel_inp + base_eps[:, None, None, None] * gabor_rand_distributed(gabor_vars, gabor_kernel), 0., 255.)
         return pixel_result.detach() / 255.0
