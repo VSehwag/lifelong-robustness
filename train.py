@@ -45,8 +45,8 @@ def main():
     parser.add_argument("--trainer", type=str, choices=("base", "adv"), default="base")
     parser.add_argument("--evaluator", type=str, choices=("base", "adv"), default="base")
     
-    parser.add_argument("--train-attack", type=str, choices=("linf", "l2", "snow", "gabor", "jpeg"), default="linf")
-    parser.add_argument("--eval-attack", type=str, choices=("linf", "l2", "snow", "gabor", "jpeg"), default="linf")
+    parser.add_argument("--train-attack", type=str, choices=("none", "linf", "l2", "snow", "gabor", "jpeg"), default="linf")
+    parser.add_argument("--eval-attack", type=str, choices=("none", "linf", "l2", "snow", "gabor", "jpeg"), default="linf")
     
     parser.add_argument("--dataset", type=str, default="cifar10")
     parser.add_argument("--datadir", type=str, default="./datasets/")

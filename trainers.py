@@ -94,13 +94,15 @@ def adv(
     )
 
     batch_time = AverageMeter("Time", ":6.3f")
-    data_time = AverageMeter("Data", ":6.3f")
-    losses = AverageMeter("Loss", ":.4f")
+    losses = AverageMeter("Loss", ":.3f")
     top1 = AverageMeter("Acc1", ":6.2f")
     top5 = AverageMeter("Acc5", ":6.2f")
+    losses_adv = AverageMeter("Loss-adv", ":.3f")
+    top1_adv = AverageMeter("Acc1-adv", ":6.2f")
+    top5_adv = AverageMeter("Acc5-adv", ":6.2f")
     progress = ProgressMeter(
         len(dataloader),
-        [batch_time, data_time, losses, top1, top5],
+        [batch_time, losses, top1, top5, losses_adv, top1_adv, top5_adv],
         prefix="Epoch: [{}]".format(epoch),
     )
 
@@ -127,16 +129,28 @@ def adv(
                 )
             )
         
-        images, target = attack_vector(model, images, target, target)
+        
         output = model(images)
         loss = criterion(output, target)
-        
-        # measure accuracy and record loss
         acc1, acc5 = accuracy(output, target, topk=(1, 5))
         losses.update(loss.item(), images.size(0))
         top1.update(acc1[0], images.size(0))
         top5.update(acc5[0], images.size(0))
-
+        
+        #model.eval() # turn off batch-norm in adv. example generation
+        images, target = attack_vector(model, images, target, target)
+        #model.train() 
+        output = model(images)
+        loss_adv = criterion(output, target)
+        
+        # measure accuracy and record loss
+        acc1, acc5 = accuracy(output, target, topk=(1, 5))
+        losses_adv.update(loss_adv.item(), images.size(0))
+        top1_adv.update(acc1[0], images.size(0))
+        top5_adv.update(acc5[0], images.size(0))
+        
+        loss = (loss + loss_adv) / 2.0 # combine benign and adversarial loss
+        
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -150,5 +164,5 @@ def adv(
         if i % args.print_freq == 0:
             progress.display(i)
             
-    result = {"top1_adv": top1.avg, "top5_adv": top5.avg, "loss": losses.avg}
+    result = {"top1": top1.avg, "top5": top5.avg, "loss": losses.avg, "top1_adv": top1_adv.avg, "top5_adv": top5_adv.avg, "loss": losses_adv.avg}
     return result

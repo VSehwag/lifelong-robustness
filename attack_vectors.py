@@ -11,9 +11,12 @@ from attacks import *
 
 def get_attack_vector(name, allparams):
     """
-        Get Untargetd attack vectors
+        Get Untargetd attack vectors. 
+        Some attack expect model to work on [0, 255] pixel range, where existing input and model have [0, 1] pixel range. Using a wrapper around current models to handle this. Note that the wrapper model no longer an instance of nn.Module class.
     """
-    if name == "linf":
+    if name == "none":
+        attack_vector = lambda model, x, ytrue, ytarget: (x, ytrue)
+    elif name == "linf":
         attack_vector = lambda model, x, ytrue, ytarget: linf(model, x, ytrue, allparams)
     elif name == "l2":
         attack_vector = lambda model, x, ytrue, ytarget: l2(model, x, ytrue, allparams)
@@ -22,17 +25,17 @@ def get_attack_vector(name, allparams):
         attack = SnowAttack(nb_its=params.nb_its, eps_max=params.eps_max, step_size=params.step_size, 
                             resol=params.resol, rand_init=params.rand_init, scale_each=params.scale_each,
                             budget=params.budget)
-        attack_vector = lambda model, x, ytrue, ytarget: (attack._forward(model, x, ytarget, avoid_target=True, scale_eps=False), ytrue)
+        attack_vector = lambda model, x, ytrue, ytarget: (attack._forward(lambda x: model(x/255.), x, ytarget, avoid_target=True, scale_eps=False), ytrue)
     elif name == "gabor":
         params = getattr(allparams, "gabor")
         attack = GaborAttack(nb_its=params.nb_its, eps_max=params.eps_max, step_size=params.step_size, 
                             resol=params.resol, rand_init=params.rand_init, scale_each=params.scale_each)
-        attack_vector = lambda model, x, ytrue, ytarget: (attack._forward(model, x, ytarget, avoid_target=True, scale_eps=False), ytrue)
+        attack_vector = lambda model, x, ytrue, ytarget: (attack._forward(lambda x: model(x/255.), x, ytarget, avoid_target=True, scale_eps=False), ytrue)
     elif name == "jpeg":
         params = getattr(allparams, "jpeg")
         attack = JPEGAttack(nb_its=params.nb_its, eps_max=params.eps_max, step_size=params.step_size, 
                             resol=params.resol, rand_init=params.rand_init, scale_each=params.scale_each, opt=params.opt)
-        attack_vector = lambda model, x, ytrue, ytarget: (attack._forward(model, x, ytarget, avoid_target=True, scale_eps=False), ytrue)
+        attack_vector = lambda model, x, ytrue, ytarget: (attack._forward(lambda x: model(x/255.), x, ytarget, avoid_target=True, scale_eps=False), ytrue)
     else:
         raise ValueError(f"{name} attack vector not supported")
     

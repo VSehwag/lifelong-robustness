@@ -120,11 +120,12 @@ class GaborAttack:
             kernels.append(get_gabor_with_sides(k_size, sigma, Lambda, theta, sides).cuda())
         gabor_kernel = torch.cat(kernels, 0).view(-1, 1, k_size, k_size)
         return gabor_kernel
-
+    
+    
     def _forward(self, pixel_model, pixel_img, target, avoid_target=True, scale_eps=False):
         pixel_inp = pixel_img.detach() * 255.0 # Assuming that input pixel are in [0., 1.]
         batch_size = pixel_img.size(0)
-
+        
         if scale_eps:
             if self.scale_each:
                 rand = torch.rand(pixel_img.size()[0], device='cuda')
@@ -135,13 +136,14 @@ class GaborAttack:
         else:
             base_eps = self.eps_max * torch.ones(pixel_img.size()[0], device='cuda')
             step_size = self.step_size * torch.ones(pixel_img.size()[0], device='cuda')
-
+    
         gabor_kernel = self._get_gabor_kernel(batch_size)
         num_kern = np.random.randint(50) + 1
         gabor_vars, mask = self._init(batch_size, num_kern)
         gabor_noise = gabor_rand_distributed(gabor_vars, gabor_kernel)
         gabor_noise = gabor_noise.expand(-1, 3, -1, -1)
         s = pixel_model(torch.clamp(pixel_inp + base_eps[:, None, None, None] * gabor_noise, 0., 255.))
+        
         for it in range(self.nb_its):
             loss = self.criterion(s, target)
             loss.backward()
@@ -164,5 +166,6 @@ class GaborAttack:
                 gabor_noise = gabor_rand_distributed(gabor_vars, gabor_kernel).expand(-1, 3, -1, -1)
                 s = pixel_model(torch.clamp(pixel_inp + base_eps[:, None, None, None] * gabor_noise, 0., 255.))
                 gabor_vars.grad.data.zero_()
-        pixel_result = torch.clamp(pixel_inp + base_eps[:, None, None, None] * gabor_rand_distributed(gabor_vars, gabor_kernel), 0., 255.)
-        return pixel_result / 255.0
+
+        pixel_result = torch.clamp(pixel_inp + base_eps[:, None, None, None], 0., 255.)
+        return pixel_result.detach() / 255.0

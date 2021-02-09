@@ -32,7 +32,7 @@ def main():
     
     parser.add_argument("--configs", type=str, default="./configs/configs_cifar.yml")
     parser.add_argument(
-        "--results_dir", type=str, default="/data/data_vvikash/fall20/lifelong-robustness/eval_logs/",
+        "--results_dir", type=str, default="./eval_logs/",
     )
     parser.add_argument("--exp-name", type=str, default="temp")
 
@@ -40,10 +40,10 @@ def main():
     parser.add_argument("--num-classes", type=int, default=10)
     
     parser.add_argument("--evaluator", type=str, choices=("base", "adv"), default="base")
-    parser.add_argument("--eval-attack", type=str, choices=("linf", "l2", "max", "avg", "tr"), default="linf")
+    parser.add_argument("--eval-attack", type=str, choices=("none", "linf", "l2", "snow", "gabor", "jpeg"), default="linf")
     
     parser.add_argument("--dataset", type=str, default="cifar10")
-    parser.add_argument("--data-dir", type=str, default="/data/data_vvikash/fall20/lifelong-robustness/datasets/")
+    parser.add_argument("--datadir", type=str, default="./datasets/")
     parser.add_argument("--in-channel", type=int, default=3)
     parser.add_argument("--normalize", action="store_true", default=False)
     parser.add_argument("--batch-size", type=int, default=256)
@@ -83,14 +83,16 @@ def main():
     
     # Dataloader
     train_loader, test_loader, _ = data.__dict__[args.dataset](
-        args.data_dir,
+        args.datadir,
         normalize=args.normalize,
         batch_size=args.batch_size,
     )
     
-    val = getattr(evaluators, args.evaluator)
-    prec1, _ = val(model, "cuda:0", test_loader, nn.CrossEntropyLoss(), args.EvalAttack, 0, args)
-    logger.info(f"validation accuracy = {prec1}")
+    # evaluation (return a dictionary from this functions and print its key-val pairs in file)
+    results_train = getattr(evaluators, args.evaluator)(model, "cuda:0", train_loader, nn.CrossEntropyLoss(), args.EvalAttack, 0, args)
+    results_val = getattr(evaluators, args.evaluator)(model, "cuda:0", test_loader, nn.CrossEntropyLoss(), args.EvalAttack, 0, args)
+    logger.info(", ".join(["{}: {:.3f}".format(k+"_train", v) for (k,v) in results_train.items()]+["{}: {:.3f}".format(k+"_val", v) for (k,v) in results_val.items()]))
+    
 
 if __name__ == "__main__":
     main()
