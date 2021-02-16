@@ -93,9 +93,10 @@ class Bottleneck(nn.Module):
 
 
 class ResNet(nn.Module):
-    def __init__(self, block, num_blocks, in_channel=3, num_classes=10, width=1, zero_init_residual=False):
+    def __init__(self, block, num_blocks, in_channel=3, num_classes=10, width=1, zero_init_residual=False, freeze_block=0):
         super(ResNet, self).__init__()
         self.in_planes = 64 * width
+        self.freeze_block = freeze_block
 
         self.conv1 = nn.Conv2d(
             in_channel, 64*width, kernel_size=3, stride=1, padding=1, bias=False
@@ -138,9 +139,21 @@ class ResNet(nn.Module):
     def forward(self, x, layer=100):
         out = F.relu(self.bn1(self.conv1(x)))
         out = self.layer1(out)
+        if self.freeze_block == 1:
+            out = out.detach()
+
         out = self.layer2(out)
+        if self.freeze_block == 2:
+            out = out.detach()
+
         out = self.layer3(out)
+        if self.freeze_block == 3:
+            out = out.detach()
+
         out = self.layer4(out)
+        if self.freeze_block == 4:
+            out = out.detach()
+
         out = self.avgpool(out)
         out = torch.flatten(out, 1)
         out = self.classifier(out)
