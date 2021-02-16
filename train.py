@@ -51,6 +51,8 @@ def main():
     parser.add_argument("--train-attacks-list", nargs="+", default=None)
     parser.add_argument("--ensemble-mode", type=str, default="max")
     
+    parser.add_argument("--freeze-block", type=int, default=-1, help="Layers before this block are frozen. -1: no frozen layer")
+    
     parser.add_argument("--dataset", type=str, default="cifar10")
     parser.add_argument("--datadir", type=str, default="./datasets/")
     parser.add_argument("--in-channel", type=int, default=3)
@@ -95,7 +97,7 @@ def main():
     torch.cuda.manual_seed_all(args.seed)
     np.random.seed(args.seed)
     
-    model = torch.nn.DataParallel(models.__dict__[args.arch](in_channel=args.in_channel, num_classes=args.num_classes, width=args.width)).cuda()
+    model = torch.nn.DataParallel(models.__dict__[args.arch](in_channel=args.in_channel, num_classes=args.num_classes, width=args.width, freeze_block=args.freeze_block)).cuda()
     print(model)
     
     if args.ckpt:

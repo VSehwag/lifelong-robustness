@@ -110,7 +110,7 @@ def adv(
     end = time.time()
     
     attack_vector = get_attack_vector(args.train_attack, attack_params)
-
+    freeze = False if args.freeze_block == -1 else True
     for i, data in enumerate(dataloader):
         images, target = data[0].to(device), data[1].to(device)
 
@@ -130,7 +130,7 @@ def adv(
             )
         
         
-        output = model(images)
+        output = model(images, freeze=freeze)
         loss = criterion(output, target)
         acc1, acc5 = accuracy(output, target, topk=(1, 5))
         losses.update(loss.item(), images.size(0))
@@ -140,7 +140,7 @@ def adv(
         #model.eval() # turn off batch-norm in adv. example generation
         images, target = attack_vector(model, images, target, target)
         #model.train() 
-        output = model(images)
+        output = model(images, freeze=freeze)
         loss_adv = criterion(output, target)
         
         # measure accuracy and record loss
