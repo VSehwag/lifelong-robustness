@@ -75,26 +75,26 @@ EvalAttack:
         clip_max: 1. 
         
     snow:
-        nb_its: 100
+        nb_its: 10
         eps_max: 1.0
-        step_size: 0.0031
+        step_size: 0.01
         resol: 224
         rand_init: True
         scale_each: False
         budget: 0.15
         
     gabor:
-        nb_its: 100
+        nb_its: 10
         eps_max: 160
-        step_size: 0.0031
+        step_size: 0.01
         resol: 224
         rand_init: True
         scale_each: False
     
     jpeg:
-        nb_its: 100
+        nb_its: 10
         eps_max: 64.0
-        step_size: 6.4
+        step_size: 20
         resol: 224
         rand_init: True
         scale_each: False

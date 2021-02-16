@@ -42,11 +42,14 @@ def main():
     parser.add_argument("--width", type=int, default=1)
     parser.add_argument("--num-classes", type=int, default=10)
     
-    parser.add_argument("--trainer", type=str, choices=("base", "adv"), default="base")
+    parser.add_argument("--trainer", type=str, choices=("base", "adv", "adv_ensemble"), default="base")
     parser.add_argument("--evaluator", type=str, choices=("base", "adv"), default="base")
     
     parser.add_argument("--train-attack", type=str, choices=("none", "linf", "l2", "snow", "gabor", "jpeg"), default="linf")
     parser.add_argument("--eval-attack", type=str, choices=("none", "linf", "l2", "snow", "gabor", "jpeg"), default="linf")
+    
+    parser.add_argument("--train-attacks-list", nargs="+", default=None)
+    parser.add_argument("--ensemble-mode", type=str, default="max")
     
     parser.add_argument("--dataset", type=str, default="cifar10")
     parser.add_argument("--datadir", type=str, default="./datasets/")
@@ -123,7 +126,7 @@ def main():
         wamrup_epochs = 5
         print(f"Warmup training for {wamrup_epochs} epochs")
         warmup_lr_scheduler = torch.optim.lr_scheduler.CyclicLR(
-            optimizer, base_lr=0.005, max_lr=args.lr, step_size_up=wamrup_epochs*len(train_loader)
+            optimizer, base_lr=0.001, max_lr=args.lr, step_size_up=wamrup_epochs*len(train_loader)
         )
         for epoch in range(wamrup_epochs):
             trainer(

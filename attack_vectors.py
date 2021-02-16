@@ -42,34 +42,20 @@ def get_attack_vector(name, allparams):
     return attack_vector
 
 
-def tr(model, x, y, allparams):
-    params = getattr(allparams, "tr")
-    with warnings.catch_warnings():
-        warnings.simplefilter('ignore')
-        attack = foolbox.attacks.SpatialAttack(params.max_translation, params.max_rotation, 
-                                               params.num_translations, params.num_rotations, 
-                                               params.grid_search, params.random_steps)
-        _, xadv, _ = attack(foolbox.PyTorchModel(model, bounds=(params.clip_min, params.clip_max)), x, y)
-    return xadv, y
-
-
-def avg(model, x, y, allparams):
-    xadv_linf, _ = linf(model, x, y, allparams)
-    #xadv_l2, _ = l2(model, x, y, allparams)
-    xadv_tr, _ = tr(model, x, y, allparams)
-    return torch.cat([xadv_linf, xadv_tr]), torch.cat([y, y])
-    
-
-def max(model, x, y, allparams):
-    xadv_linf, _ = linf(model, x, y, allparams)
-    #xadv_l2, _ = l2(model, x, y, allparams)
-    xadv_tr, _ = tr(model, x, y, allparams)
-    
-    conf_linf = F.softmax(model(xadv_linf), dim=-1).gather(dim=-1, index=y.view(-1, 1)).view(-1, 1, 1, 1)
-    #conf_l2 = F.softmax(model(xadv_l2), dim=-1).gather(dim=-1, index=y.view(-1, 1)).view(-1, 1, 1, 1)
-    conf_tr = F.softmax(model(xadv_tr), dim=-1).gather(dim=-1, index=y.view(-1, 1)).view(-1, 1, 1, 1)
-    
-    xadv = torch.where(conf_linf < conf_tr, xadv_linf, xadv_tr)
-    
-    return xadv, y
-    
+def combine_attack_vectors(names, allparams, mode="max"):
+    assert mode in ["max", "avg"]
+    attack_vectors = [get_attack_vector(name, allparams) for name in names]
+    print(f"Combining {names} attacks with {mode} mode")
+    if mode == "avg":
+        def attack_vector(model, x, ytrue, ytarget):
+            xadv = torch.cat([attack(model, x, ytrue, ytarget)[0] for attack in attack_vectors]) # all returns the original label itself
+            y = torch.cat([ytrue, ytrue])
+            return xadv, y
+    if mode =="max":
+        assert len(names) == 2, "currently supporting averaging of two attacks only, need a more generic comparison fxn to support more attacks"
+        def attack_vector(model, x, ytrue, ytarget):
+            xadv = [attack(model, x, ytrue, ytarget)[0] for attack in attack_vectors] # all returns the original label itself
+            pred = [F.softmax(model(v), dim=-1).gather(dim=-1, index=ytrue.view(-1, 1)).view(-1, 1, 1, 1) for v in xadv]
+            xadv = torch.where(pred[0] < pred[1], xadv[0], xadv[1])
+            return xadv, ytrue
+    return attack_vector
