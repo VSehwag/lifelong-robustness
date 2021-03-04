@@ -1,14 +1,14 @@
 TrainAttack:
     linf:
-        epsilon: 0.0155
-        step_size: 0.01
+        epsilon: 0.0078
+        step_size: 0.004
         steps: 4
         clip_min: 0.
         clip_max: 1.
         
     l2:
-        epsilon: 3.0
-        step_size: 1.5
+        epsilon: 2.0
+        step_size: 1.0
         steps: 4
         clip_min: 0.
         clip_max: 1.
@@ -25,7 +25,7 @@ TrainAttack:
         
     snow:
         nb_its: 4
-        eps_max: 1.0
+        eps_max: 0.4
         step_size: 0.016
         resol: 224
         rand_init: True
@@ -34,7 +34,7 @@ TrainAttack:
     
     gabor:
         nb_its: 4
-        eps_max: 160
+        eps_max: 20
         step_size: 0.016
         resol: 224
         rand_init: True
@@ -42,8 +42,8 @@ TrainAttack:
         
     jpeg:
         nb_its: 4
-        eps_max: 64.0
-        step_size: 32.0
+        eps_max: 8.0
+        step_size: 4.0
         resol: 224
         rand_init: True
         scale_each: False
@@ -51,14 +51,14 @@ TrainAttack:
         
 EvalAttack:
     linf:
-        epsilon: 0.0155
+        epsilon: 0.0078
         step_size: 0.004
         steps: 20
         clip_min: 0.
         clip_max: 1.
         
     l2:
-        epsilon: 3.0
+        epsilon: 2.0
         step_size: 0.4
         steps: 20
         clip_min: 0.
@@ -76,7 +76,7 @@ EvalAttack:
         
     snow:
         nb_its: 10
-        eps_max: 1.0
+        eps_max: 0.4
         step_size: 0.01
         resol: 224
         rand_init: True
@@ -85,7 +85,7 @@ EvalAttack:
         
     gabor:
         nb_its: 10
-        eps_max: 160
+        eps_max: 20
         step_size: 0.01
         resol: 224
         rand_init: True
@@ -93,8 +93,8 @@ EvalAttack:
     
     jpeg:
         nb_its: 10
-        eps_max: 64.0
-        step_size: 20
+        eps_max: 8.0
+        step_size: 2
         resol: 224
         rand_init: True
         scale_each: False

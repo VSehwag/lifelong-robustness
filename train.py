@@ -43,13 +43,14 @@ def main():
     parser.add_argument("--num-classes", type=int, default=10)
     
     parser.add_argument("--trainer", type=str, choices=("base", "adv", "adv_ensemble"), default="base")
-    parser.add_argument("--evaluator", type=str, choices=("base", "adv"), default="base")
+    parser.add_argument("--evaluator", type=str, choices=("base", "adv", "adv_ensemble"), default="base")
     
     parser.add_argument("--train-attack", type=str, choices=("none", "linf", "l2", "snow", "gabor", "jpeg"), default="linf")
     parser.add_argument("--eval-attack", type=str, choices=("none", "linf", "l2", "snow", "gabor", "jpeg"), default="linf")
     
     parser.add_argument("--train-attacks-list", nargs="+", default=None)
-    parser.add_argument("--ensemble-mode", type=str, default="max")
+    parser.add_argument("--eval-attacks-list", nargs="+", default=None)
+    parser.add_argument("--ensemble-mode", type=str, default="max") # using same ensemble mode for training and evaluation
     
     parser.add_argument("--freeze-block", type=int, default=-1, help="Layers before this block are frozen. -1: no frozen layer")
     
@@ -98,7 +99,7 @@ def main():
     np.random.seed(args.seed)
     
     model = torch.nn.DataParallel(models.__dict__[args.arch](in_channel=args.in_channel, num_classes=args.num_classes, width=args.width, freeze_block=args.freeze_block)).cuda()
-    print(model)
+    # print(model)
     
     if args.ckpt:
         ckpt_dict = torch.load(args.ckpt, map_location="cpu")["state_dict"]
@@ -154,11 +155,12 @@ def main():
     
     for epoch in range(0, args.epochs):
         results_train = trainer(model, "cuda:0", train_loader, criterion, optimizer, args.TrainAttack, lr_scheduler, epoch, args)
-        results_val = val(model, "cuda:0", test_loader, criterion, args.EvalAttack, epoch, args)
+        print("Using TrainAttack parameters for faster evaluation per epoch. Need to perform another eval post training with EvalAttack parameters.")
+        results_val = val(model, "cuda:0", test_loader, criterion, args.TrainAttack, epoch, args)
         
         if args.evaluator == "base":
             prec = results_val["top1"]
-        elif args.evaluator == "adv":
+        elif args.evaluator in ["adv", "adv_ensemble"]:
             prec = results_val["top1_adv"]
         else:
             raise ValueError()
