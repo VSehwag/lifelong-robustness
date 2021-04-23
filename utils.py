@@ -38,15 +38,20 @@ def clone_results_to_latest_subdir(src, dst):
         os.mkdir(dst)
     copy_tree(src, dst)
 
+    
 def update_args(args):
     with open(args.configs) as f:
         new_args = EasyDict(yaml.load(f))
     
     for k, v in vars(args).items():
-        new_args[k] = v
+        if k in list(new_args.keys()):
+            if v is not None:
+                new_args[k] = v
+        else:
+            new_args[k] = v
     
     return new_args
-    
+
     
 class AverageMeter(object):
     """Computes and stores the average and current value"""
