@@ -58,23 +58,39 @@ class BasicBlock(nn.Module):
         self.downsample = downsample
         self.stride = stride
 
-    def forward(self, x: Tensor) -> Tensor:
+    def forward(self, x: Tensor, all: bool = False) -> Union[Tensor,tuple]:
         identity = x
+        output_dict = {}
 
         out = self.conv1(x)
+        if all:
+            output_dict['conv1'] = out
         out = self.bn1(out)
+        if all:
+            output_dict['bn1'] = out
         out = self.relu(out)
+        if all:
+            output_dict['relu1'] = out
 
         out = self.conv2(out)
+        if all:
+            output_dict['conv2'] = out
         out = self.bn2(out)
+        if all:
+            output_dict['bn2'] = out
 
         if self.downsample is not None:
             identity = self.downsample(x)
 
         out += identity
         out = self.relu(out)
+        if all:
+            output_dict['relu2'] = out
 
-        return out
+        if all:
+            return out, output_dict
+        else:
+            return out
 
 
 class Bottleneck(nn.Module):
@@ -112,27 +128,49 @@ class Bottleneck(nn.Module):
         self.downsample = downsample
         self.stride = stride
 
-    def forward(self, x: Tensor) -> Tensor:
+    def forward(self, x: Tensor, all: bool = False) -> Tensor:
         identity = x
+        output_dict = {}
 
         out = self.conv1(x)
+        if all:
+            output_dict['conv1'] = out
         out = self.bn1(out)
+        if all:
+            output_dict['bn1'] = out
         out = self.relu(out)
+        if all:
+            output_dict['relu1'] = out
 
         out = self.conv2(out)
+        if all:
+            output_dict['conv2'] = out
         out = self.bn2(out)
+        if all:
+            output_dict['bn2'] = out
         out = self.relu(out)
+        if all:
+            output_dict['relu2'] = out
 
         out = self.conv3(out)
+        if all:
+            output_dict['conv3'] = out
         out = self.bn3(out)
+        if all:
+            output_dict['bn3'] = out
 
         if self.downsample is not None:
             identity = self.downsample(x)
 
         out += identity
         out = self.relu(out)
+        if all:
+            output_dict['relu3'] = out
 
-        return out
+        if all:
+            return out, output_dict
+        else:
+            return out
 
 
 class ResNet(nn.Module):
@@ -224,37 +262,88 @@ class ResNet(nn.Module):
 
         return nn.Sequential(*layers)
 
-    def _forward_impl(self, x: Tensor, freeze: bool) -> Tensor:
+    def _layer_forward_helper(self, layer, x, all=True):
+        i = 0
+        out_dict = {}
+        out = None
+        for block in layer.children():
+            if all:
+                x, out = block.forward(x, all=all)
+            else:
+                x = block.forward(x, all=all)
+            out_dict['block_' + str(i)] = out
+            i += 1
+        return x, out_dict
+
+    #def _forward_impl(self, x: Tensor, freeze: bool) -> Tensor:
+    def _forward_impl(self, x: Tensor, freeze: bool, all: bool = False) -> tuple:
         # See note [TorchScript super()]
+        outs = {}
         x = self.conv1(x)
+        if all:
+            outs['conv1'] = x
         x = self.bn1(x)
+        if all:
+            outs['bn1'] = x
         x = self.relu(x)
+        if all:
+            outs['relu1'] = x
         x = self.maxpool(x)
+        if all:
+            outs['maxpool1'] = x
         
-        x = self.layer1(x)
+        if all:
+            x, outs1 = self._layer_forward_helper(self.layer1, x, all=False)
+            outs['layer1'] = outs1
+        else:
+            x = self.layer1(x)
+        
         if self.freeze_block == 1 and freeze:
             x = x.detach()
             
-        x = self.layer2(x)
+        if all:
+            x, outs2 = self._layer_forward_helper(self.layer2, x, all=False)
+            outs['layer2'] = outs2
+        else:
+            x = self.layer2(x)
+
         if self.freeze_block == 2 and freeze:
             x = x.detach()
             
-        x = self.layer3(x)
+        if all:
+            x, outs3 = self._layer_forward_helper(self.layer3, x, all=False)
+            outs['layer3'] = outs3
+        else:
+            x = self.layer3(x)
+
         if self.freeze_block == 3 and freeze:
             x = x.detach()
     
-        x = self.layer4(x)
+        if all:
+            x, outs4 = self._layer_forward_helper(self.layer4, x)
+            outs['layer4'] = outs4
+        else:
+            x = self.layer4(x)
+
         if self.freeze_block == 4 and freeze:
             x = x.detach()
         
         x = self.avgpool(x)
+        if all:
+            outs['avgpool1'] = x
         x = torch.flatten(x, 1)
         x = self.fc(x)
+        if all: 
+            outs['fc1'] = x
 
-        return x
+        if all:
+            return x, outs
+        else:
+            return x
 
-    def forward(self, x, freeze=False) -> Tensor:
-        return self._forward_impl(x, freeze)
+    #def forward(self, x, freeze=False) -> Tensor:
+    def forward(self, x, freeze=False, all=False) -> Union[Tensor,tuple]:
+        return self._forward_impl(x, freeze, all)
 
 
 def ResNet18(num_classes=10, **kwargs):
