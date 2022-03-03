@@ -12,6 +12,7 @@ import warnings
 from collections import OrderedDict
 import pdb
 import importlib
+import pickle
 
 import torch
 import torch.nn as nn
@@ -64,6 +65,7 @@ def main():
     parser.add_argument("--momentum", type=float, default=0.9)
     parser.add_argument("--weight-decay", type=float, default=1e-4)
     parser.add_argument("--warmup", action="store_true")
+    parser.add_argument("--upsample-size", type=int, default=None)
     
     parser.add_argument("--autoattack", action="store_true", default=False, 
                         help="Use AutoAttack instead of PGD in evaluation only")
@@ -98,7 +100,8 @@ def main():
     torch.cuda.manual_seed_all(args.seed)
     np.random.seed(args.seed)
     
-    model = torch.nn.DataParallel(models.__dict__[args.arch](in_channel=args.in_channel, num_classes=args.num_classes, width=args.width, freeze_block=args.freeze_block)).cuda()
+    model = torch.nn.DataParallel(models.__dict__[args.arch](in_channel=args.in_channel, num_classes=args.num_classes, freeze_block=args.freeze_block)).cuda()
+    # model = torch.nn.DataParallel(models.__dict__[args.arch](in_channel=args.in_channel, num_classes=args.num_classes, width=args.width, freeze_block=args.freeze_block)).cuda()
     # print(model)
     
     if args.ckpt:
@@ -107,11 +110,19 @@ def main():
         print(f"Checkpoint loaded from {args.ckpt}")
         
     # Dataloader
-    train_loader, test_loader, _ = data.__dict__[args.dataset](
-        args.datadir,
-        normalize=args.normalize,
-        batch_size=args.batch_size,
-    )
+    if args.upsample_size is None:
+        train_loader, test_loader, _ = data.__dict__[args.dataset](
+            args.datadir,
+            normalize=args.normalize,
+            batch_size=args.batch_size,
+        )
+    else:
+        train_loader, test_loader, _ = data.__dict__[args.dataset](
+            args.datadir,
+            normalize=args.normalize,
+            batch_size=args.batch_size,
+            size=args.upsample_size,
+        )
 
     criterion = nn.CrossEntropyLoss().cuda()
     optimizer = torch.optim.SGD(
@@ -153,10 +164,12 @@ def main():
         optimizer, args.epochs * len(train_loader), 1e-4
     )
     
+    epoch_results = {}
     for epoch in range(0, args.epochs):
         results_train = trainer(model, "cuda:0", train_loader, criterion, optimizer, args.TrainAttack, lr_scheduler, epoch, args)
         print("Using TrainAttack parameters for faster evaluation per epoch. Need to perform another eval post training with EvalAttack parameters.")
         results_val = val(model, "cuda:0", test_loader, criterion, args.TrainAttack, epoch, args)
+        epoch_results[epoch] = {'train':results_train, 'val':results_val}
         
         if args.evaluator == "base":
             prec = results_val["top1"]
@@ -175,11 +188,14 @@ def main():
             "optimizer": optimizer.state_dict(),
         }
 
+        os.makedirs(os.path.join(result_sub_dir, f"checkpoint_epoch_{epoch}"), exist_ok=True)
         save_checkpoint(
-            d, is_best, results_dir=os.path.join(result_sub_dir, "checkpoint"),
+            d, is_best, results_dir=os.path.join(result_sub_dir, f"checkpoint_epoch_{epoch}"),
         )
         
         logger.info(f"Epoch {epoch}, " + ", ".join(["{}: {:.3f}".format(k+"_train", v) for (k,v) in results_train.items()]+["{}: {:.3f}".format(k+"_val", v) for (k,v) in results_val.items()]))
+        with open(os.path.join(result_sub_dir, "train_logs.pkl"), "wb") as f:
+            pickle.dump(epoch_results, f)
 
 
 if __name__ == "__main__":

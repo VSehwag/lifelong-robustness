@@ -93,8 +93,11 @@ def cifar10(datadir, batch_size=128, mode="org", normalize=True, norm_layer=None
     """
         mode: org | base
     """
-    transform_train = [transforms.RandomCrop(size, padding=4), transforms.RandomHorizontalFlip(), transforms.ToTensor()]
-    transform_test = [transforms.ToTensor()]
+    transform_train = [transforms.Resize(size), transforms.RandomCrop(size, padding=4), transforms.RandomHorizontalFlip(), transforms.ToTensor()]
+    transform_test = [transforms.Resize(size), transforms.ToTensor()]
+    if size <= 32:
+        transform_train = transform_train[1:]
+        transform_test = transform_test[1:]
     
     if mode == "org":
         None

@@ -45,15 +45,23 @@ def normalize_var(orig):
 
     # Spectral variance
     mean = torch.mean(orig.view(batch_size, -1), 1).view(batch_size, 1, 1, 1)
-    spec_var = torch.rfft(torch.pow(orig -  mean, 2), 2)
+    # spec_var = torch.rfft(torch.pow(orig -  mean, 2), 2)
+    spec_var = torch.fft.rfft2(torch.pow(orig -  mean, 2))
+    #print(spec_var.shape)
 
     # Normalization
-    imC = torch.sqrt(torch.irfft(spec_var, 2, signal_sizes=orig.size()[2:]).abs())
+    # imC = torch.sqrt(torch.irfft(spec_var, 2, signal_sizes=orig.size()[2:]).abs())
+    # imC = torch.sqrt(torch.fft.irfft(spec_var).abs())
+    imC = torch.sqrt(torch.fft.irfft2(spec_var).abs())
     imC /= torch.max(imC.view(batch_size, -1), 1)[0].view(batch_size, 1, 1, 1)
     minC = 0.001
     imK =  (minC + 1) / (minC + imC)
 
     mean, imK = mean.detach(), imK.detach()
+    #print(imC.shape)
+    #print(orig.shape)
+    #print(mean.shape)
+    #print(imK.shape)
     img = mean + (orig -  mean) * imK
     return normalize(img)
 

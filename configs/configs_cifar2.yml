@@ -1,6 +1,6 @@
 TrainAttack:
     linf:
-        epsilon: 0.031
+        epsilon: 0.062
         step_size: 0.0078
         steps: 7
         clip_min: 0.
@@ -25,7 +25,7 @@ TrainAttack:
 
     snow:
         nb_its: 4
-        eps_max: 2.0
+        eps_max: 4.0
         step_size: 0.16
         resol: 32
         rand_init: True
@@ -35,7 +35,7 @@ TrainAttack:
     jpeg:
         nb_its: 4
         #eps_max: 1.0
-        eps_max: 25.0
+        eps_max: 50.0
         #step_size: 0.1
         step_size: 1.6
         resol: 32
@@ -46,7 +46,7 @@ TrainAttack:
 
     gabor:
         nb_its: 4
-        eps_max: 75
+        eps_max: 150
         step_size: 0.08
         resol: 32
         rand_init: True
@@ -54,14 +54,14 @@ TrainAttack:
  
 EvalAttack:
     linf:
-        epsilon: 0.031
+        epsilon: 0.062
         step_size: 0.0078
         steps: 20
         clip_min: 0.
         clip_max: 1.
         
     l2:
-        epsilon: 1.0
+        epsilon: 2.0
         step_size: 0.1
         steps: 20
         clip_min: 0.
@@ -79,7 +79,7 @@ EvalAttack:
 
     snow:
         nb_its: 10
-        eps_max: 2.0
+        eps_max: 4.0
         step_size: 0.1
         resol: 32
         rand_init: True
@@ -89,7 +89,7 @@ EvalAttack:
     jpeg:
         nb_its: 10
         #eps_max: 1.0
-        eps_max: 25.0
+        eps_max: 50.0
         #step_size: 0.1
         step_size: 1.0
         resol: 32
@@ -100,7 +100,7 @@ EvalAttack:
 
     gabor:
         nb_its: 10
-        eps_max: 75
+        eps_max: 150
         step_size: 0.05
         resol: 32
         rand_init: True

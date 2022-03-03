@@ -1,0 +1,90 @@
+EvalAttack:
+  gabor:
+    eps_max: 160.0
+    nb_its: 10
+    rand_init: true
+    resol: 224
+    scale_each: false
+    step_size: 0.01
+  jpeg:
+    eps_max: 64.0
+    nb_its: 10
+    opt: l2
+    rand_init: true
+    resol: 224
+    scale_each: false
+    step_size: 20
+  l2:
+    clip_max: 1.0
+    clip_min: 0.0
+    epsilon: 3.0
+    step_size: 0.4
+    steps: 20
+  linf:
+    clip_max: 1.0
+    clip_min: 0.0
+    epsilon: 0.0155
+    step_size: 0.004
+    steps: 20
+  snow:
+    budget: 0.15
+    eps_max: 1.0
+    nb_its: 10
+    rand_init: true
+    resol: 224
+    scale_each: false
+    step_size: 0.01
+  tr:
+    clip_max: 1.0
+    clip_min: 0.0
+    grid_search: true
+    max_rotation: 30
+    max_translation: 50
+    num_rotations: 5
+    num_translations: 5
+    random_steps: 0
+TrainAttack:
+  gabor:
+    eps_max: 160.0
+    nb_its: 4
+    rand_init: true
+    resol: 224
+    scale_each: false
+    step_size: 0.016
+  jpeg:
+    eps_max: 64.0
+    nb_its: 4
+    opt: l2
+    rand_init: true
+    resol: 224
+    scale_each: false
+    step_size: 32.0
+  l2:
+    clip_max: 1.0
+    clip_min: 0.0
+    epsilon: 3.0
+    step_size: 1.5
+    steps: 4
+  linf:
+    clip_max: 1.0
+    clip_min: 0.0
+    epsilon: 0.0155
+    step_size: 0.01
+    steps: 4
+  snow:
+    budget: 0.15
+    eps_max: 1.0
+    nb_its: 4
+    rand_init: true
+    resol: 224
+    scale_each: false
+    step_size: 0.016
+  tr:
+    clip_max: 1.0
+    clip_min: 0.0
+    grid_search: false
+    max_rotation: 30
+    max_translation: 50
+    num_rotations: 0
+    num_translations: 0
+    random_steps: 10

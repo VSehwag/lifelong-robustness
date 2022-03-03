@@ -1,21 +1,21 @@
 TrainAttack:
     linf:
-        epsilon: 0.0465
+        epsilon: 0
         step_size: 0.0078
-        steps: 7
+        steps: 0
         clip_min: 0.
         clip_max: 1.
         
     l2:
-        epsilon: 1.5
+        epsilon: 0
         step_size: 0.2
-        steps: 7
+        steps: 0
         clip_min: 0.
         clip_max: 1.
     
     tr:
-        max_translation: 5
-        max_rotation: 30
+        max_translation: 0
+        max_rotation: 0
         num_translations: 0
         num_rotations: 0
         grid_search: False
@@ -24,8 +24,8 @@ TrainAttack:
         clip_max: 1.
 
     snow:
-        nb_its: 4
-        eps_max: 3.0
+        nb_its: 0
+        eps_max: 0
         step_size: 0.16
         resol: 32
         rand_init: True
@@ -35,7 +35,7 @@ TrainAttack:
     jpeg:
         nb_its: 4
         #eps_max: 1.0
-        eps_max: 37.5
+        eps_max: 0.1
         #step_size: 0.1
         step_size: 1.6
         resol: 32
@@ -45,8 +45,8 @@ TrainAttack:
         #opt: "linf"
 
     gabor:
-        nb_its: 4
-        eps_max: 112.5
+        nb_its: 0
+        eps_max: 0
         step_size: 0.08
         resol: 32
         rand_init: True
@@ -54,32 +54,32 @@ TrainAttack:
  
 EvalAttack:
     linf:
-        epsilon: 0.0465
+        epsilon: 0
         step_size: 0.0078
-        steps: 20
+        steps: 0
         clip_min: 0.
         clip_max: 1.
         
     l2:
-        epsilon: 1.5
+        epsilon: 0
         step_size: 0.1
-        steps: 20
+        steps: 0
         clip_min: 0.
         clip_max: 1.
     
     tr:
-        max_translation: 5
-        max_rotation: 30
-        num_translations: 5
-        num_rotations: 5
+        max_translation: 0
+        max_rotation: 0
+        num_translations: 0
+        num_rotations: 0
         grid_search: True
         random_steps: 0
         clip_min: 0.
         clip_max: 1.       
 
     snow:
-        nb_its: 10
-        eps_max: 3.0
+        nb_its: 0
+        eps_max: 0
         step_size: 0.1
         resol: 32
         rand_init: True
@@ -89,7 +89,7 @@ EvalAttack:
     jpeg:
         nb_its: 10
         #eps_max: 1.0
-        eps_max: 37.5
+        eps_max: 0.01
         #step_size: 0.1
         step_size: 1.0
         resol: 32
@@ -99,8 +99,8 @@ EvalAttack:
         #opt: "linf"
 
     gabor:
-        nb_its: 10
-        eps_max: 112.5
+        nb_its: 0
+        eps_max: 0
         step_size: 0.05
         resol: 32
         rand_init: True

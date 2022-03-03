@@ -130,7 +130,12 @@ def adv(
             )
         
         
-        output = model(images, freeze=freeze)
+        # Encountered torch error when freeze keyword is included
+        # output = model(images, freeze=freeze)
+        output = model(images)
+        # print(f'Images shape: {images.shape}')
+        # print(f'Output shape: {output.shape}')
+        # print(f'Target shape: {target.shape}')
         loss = criterion(output, target)
         acc1, acc5 = accuracy(output, target, topk=(1, 5))
         losses.update(loss.item(), images.size(0))
@@ -140,7 +145,8 @@ def adv(
         #model.eval() # turn off batch-norm in adv. example generation
         images, target = attack_vector(model, images, target, target)
         #model.train() 
-        output = model(images, freeze=freeze)
+        # output = model(images, freeze=freeze)
+        output = model(images)
         loss_adv = criterion(output, target)
         
         # measure accuracy and record loss
